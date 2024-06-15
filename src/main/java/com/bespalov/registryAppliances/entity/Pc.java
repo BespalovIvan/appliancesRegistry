@@ -13,23 +13,25 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Smartphone extends ModelAppliance {
-    @Column(name = "memory", nullable = false)
-    private Integer memory;
-    @Column(name = "count_cameras", nullable = false)
-    private Integer countCameras;
+public class Pc extends ModelAppliance {
+
+    @Column(name = "category")
+    private String category;
+
+    @Column(name = "processor")
+    private String processor;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        Smartphone that = (Smartphone) o;
-        return Objects.equals(memory, that.memory) && Objects.equals(countCameras, that.countCameras);
+        Pc pc = (Pc) o;
+        return Objects.equals(category, pc.category) && Objects.equals(processor, pc.processor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), memory, countCameras);
+        return Objects.hash(super.hashCode(), category, processor);
     }
 }

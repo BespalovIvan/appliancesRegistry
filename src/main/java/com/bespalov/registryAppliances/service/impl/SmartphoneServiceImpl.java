@@ -43,6 +43,7 @@ public class SmartphoneServiceImpl implements SmartphoneService {
         smartphoneRepository.save(smartphone);
     }
 
+    @Transactional
     @Override
     public List<SmartphoneDto> filterSmartphones(String name, String serialNumber, String color, String size,
                                                  BigDecimal minPrice, BigDecimal maxPrice, Integer memory,

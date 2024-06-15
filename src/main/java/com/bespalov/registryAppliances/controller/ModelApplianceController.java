@@ -27,10 +27,10 @@ public class ModelApplianceController {
     @GetMapping("/sort")
     public ResponseEntity<List<ModelApplianceDto>> sortingAllModels(
             @Parameter(description = "Sort direction meaning", required = true)
-            @RequestParam
+            @RequestParam(defaultValue = "asc")
             String direction,
             @Parameter(description = "Sorting parameter", required = true)
-            @RequestParam
+            @RequestParam(defaultValue = "name")
             String sortParam) {
         return new ResponseEntity<>(modelApplianceService
                 .findAllModelAppliancesWithSortByAlphabetOrPrice(direction, sortParam), HttpStatus.OK);

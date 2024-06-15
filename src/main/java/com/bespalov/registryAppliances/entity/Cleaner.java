@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import java.util.Objects;
 
@@ -13,23 +12,24 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Smartphone extends ModelAppliance {
-    @Column(name = "memory", nullable = false)
-    private Integer memory;
-    @Column(name = "count_cameras", nullable = false)
-    private Integer countCameras;
+public class Cleaner extends ModelAppliance {
+    @Column(name = "dust_collector_capacity")
+    private Integer dustCollectorCapacity;
+    @Column(name = "count_of_modes")
+    private Integer countOfModes;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        Smartphone that = (Smartphone) o;
-        return Objects.equals(memory, that.memory) && Objects.equals(countCameras, that.countCameras);
+        Cleaner cleaner = (Cleaner) o;
+        return Objects.equals(dustCollectorCapacity, cleaner.dustCollectorCapacity) && Objects.equals(countOfModes, cleaner.countOfModes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), memory, countCameras);
+        return Objects.hash(super.hashCode(), dustCollectorCapacity, countOfModes);
     }
 }
+

@@ -29,7 +29,7 @@ public class ApplianceController {
             @ApiResponse(responseCode = "400", description = "Not all fields are filled in"),
             @ApiResponse(responseCode = "500", description = "Not all DTO fields are filled in correctly")
     })
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApplianceDto> addAppliance(
             @RequestBody @Valid ApplianceDto applianceDto
     ) {
@@ -39,8 +39,8 @@ public class ApplianceController {
     @Operation(summary = "Get all appliances with sorting by alphabet", tags = {"appliance"})
     @GetMapping("/sort")
     public List<ApplianceDto> getAllAppliancesWithSortingByAlphabet(
-            @Parameter(description = "Sort direction meaning", required = true)
-            @RequestParam String direction) {
+            @Parameter(description = "Sort direction meaning")
+            @RequestParam(defaultValue = "asc") String direction) {
         return applianceService.findAllAppliancesWithSortByAlphabet(direction);
     }
 }
