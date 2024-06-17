@@ -1,11 +1,14 @@
 package com.bespalov.registryAppliances.service.impl;
 
+import com.bespalov.registryAppliances.config.QPredicate;
 import com.bespalov.registryAppliances.dto.PcDto;
 import com.bespalov.registryAppliances.entity.Appliance;
 import com.bespalov.registryAppliances.entity.Pc;
+import com.bespalov.registryAppliances.entity.QPc;
 import com.bespalov.registryAppliances.repository.ApplianceRepository;
 import com.bespalov.registryAppliances.repository.PcRepository;
 import com.bespalov.registryAppliances.service.PcService;
+import com.querydsl.core.types.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.bespalov.registryAppliances.entity.QPc.*;
 
 @Service
 public class PcServiceImpl implements PcService {
@@ -46,42 +51,21 @@ public class PcServiceImpl implements PcService {
 
     @Transactional
     @Override
-    public List<PcDto> filterPc(String name, String serialNumber, String color, String size,
-                                BigDecimal minPrice, BigDecimal maxPrice, String category, String processor,
-                                Boolean availability) {
-        List<Pc> allPc = pcRepository.findAll();
-        List<PcDto> pcDtoList = new ArrayList<>();
-        allPc.forEach((pc) -> pcDtoList.add(convertToPcDto(pc)));
-        return pcDtoList
-                .stream()
-                .filter(pcDto -> name == null || pcDto
-                        .getName()
-                        .equalsIgnoreCase(name))
-                .filter(pcDto -> serialNumber == null || pcDto
-                        .getSerialNumber()
-                        .equalsIgnoreCase(serialNumber))
-                .filter(pcDto -> color == null || pcDto
-                        .getColor()
-                        .equalsIgnoreCase(color))
-                .filter(pcDto -> size == null || pcDto
-                        .getSize()
-                        .equalsIgnoreCase(size))
-                .filter(pcDto -> minPrice == null || pcDto
-                        .getPrice()
-                        .compareTo(minPrice) >= 0)
-                .filter(pcDto -> maxPrice == null || pcDto
-                        .getPrice()
-                        .compareTo(maxPrice) <= 0)
-                .filter(pcDto -> category == null || pcDto
-                        .getCategory()
-                        .equalsIgnoreCase(category))
-                .filter(pcDto -> processor == null || pcDto
-                        .getProcessor()
-                        .equalsIgnoreCase(processor))
-                .filter(cleanerDto -> availability == null || cleanerDto
-                        .getIsAvailability()
-                        .equals(availability))
-                .collect(Collectors.toList());
+    public List<PcDto> filterPc(PcDto pcDto) {
+        Predicate predicate = QPredicate.builder()
+                .add(pcDto.getName(), pc.name::containsIgnoreCase)
+                .add(pcDto.getSerialNumber(), pc.serialNumber::containsIgnoreCase)
+                .add(pcDto.getColor(), pc.color::containsIgnoreCase)
+                .add(pcDto.getSize(), pc.size::containsIgnoreCase)
+                .add(pcDto.getPrice(), pc.price::goe)
+                .add(pcDto.getIsAvailability(), pc.isAvailability::eq)
+                .add(pcDto.getProcessor(), pc.processor::containsIgnoreCase)
+                .add(pcDto.getCategory(), pc.category::containsIgnoreCase)
+                .buildOr();
+        Iterable<Pc> pcIterable = pcRepository.findAll(predicate);
+        List<PcDto> result = new ArrayList<>();
+        pcIterable.iterator().forEachRemaining((pc) -> result.add(convertToPcDto(pc)));
+        return result;
     }
 
     public Pc convertToPc(PcDto pcDto) {

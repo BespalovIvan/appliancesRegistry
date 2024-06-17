@@ -1,19 +1,21 @@
 package com.bespalov.registryAppliances.service.impl;
 
+import com.bespalov.registryAppliances.config.QPredicate;
 import com.bespalov.registryAppliances.dto.TvDto;
 import com.bespalov.registryAppliances.entity.Appliance;
 import com.bespalov.registryAppliances.entity.Tv;
 import com.bespalov.registryAppliances.repository.ApplianceRepository;
 import com.bespalov.registryAppliances.repository.TvRepository;
 import com.bespalov.registryAppliances.service.TvService;
+import com.querydsl.core.types.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.bespalov.registryAppliances.entity.QTv.tv;
 
 @Service
 public class TvServiceImpl implements TvService {
@@ -45,42 +47,21 @@ public class TvServiceImpl implements TvService {
 
     @Transactional
     @Override
-    public List<TvDto> filterTv(String name, String serialNumber, String color, String size, BigDecimal minPrice,
-                                BigDecimal maxPrice, String category, String technology,
-                                Boolean availability) {
-        List<Tv> allTv = tvRepository.findAll();
-        List<TvDto> tvDtoList = new ArrayList<>();
-        allTv.forEach((tv) -> tvDtoList.add(convertToTvDto(tv)));
-        return tvDtoList
-                .stream()
-                .filter(tvDto -> name == null || tvDto
-                        .getName()
-                        .equalsIgnoreCase(name))
-                .filter(tvDto -> serialNumber == null || tvDto
-                        .getSerialNumber()
-                        .equalsIgnoreCase(serialNumber))
-                .filter(tvDto -> color == null || tvDto
-                        .getColor()
-                        .equalsIgnoreCase(color))
-                .filter(tvDto -> size == null || tvDto
-                        .getSize()
-                        .equalsIgnoreCase(size))
-                .filter(tvDto -> minPrice == null || tvDto
-                        .getPrice()
-                        .compareTo(minPrice) >= 0)
-                .filter(tvDto -> maxPrice == null || tvDto
-                        .getPrice()
-                        .compareTo(maxPrice) <= 0)
-                .filter(tvDto -> category == null || tvDto
-                        .getCategory()
-                        .equalsIgnoreCase(category))
-                .filter(tvDto -> technology == null || tvDto
-                        .getTechnology()
-                        .equalsIgnoreCase(technology))
-                .filter(cleanerDto -> availability == null || cleanerDto
-                        .getIsAvailability()
-                        .equals(availability))
-                .collect(Collectors.toList());
+    public List<TvDto> filterTv(TvDto tvDto) {
+        Predicate predicate = QPredicate.builder()
+                .add(tvDto.getName(), tv.name::containsIgnoreCase)
+                .add(tvDto.getSerialNumber(), tv.serialNumber::containsIgnoreCase)
+                .add(tvDto.getColor(), tv.color::containsIgnoreCase)
+                .add(tvDto.getSize(), tv.size::containsIgnoreCase)
+                .add(tvDto.getPrice(), tv.price::goe)
+                .add(tvDto.getIsAvailability(), tv.isAvailability::eq)
+                .add(tvDto.getCategory(), tv.category::containsIgnoreCase)
+                .add(tvDto.getTechnology(), tv.technology::containsIgnoreCase)
+                .buildOr();
+        Iterable<Tv> tvIterable = tvRepository.findAll(predicate);
+        List<TvDto> result = new ArrayList<>();
+        tvIterable.iterator().forEachRemaining((tv) -> result.add(convertToTvDto(tv)));
+        return result;
     }
 
     public Tv convertToTv(TvDto tvDto) {

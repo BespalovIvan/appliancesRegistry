@@ -1,19 +1,21 @@
 package com.bespalov.registryAppliances.service.impl;
 
+import com.bespalov.registryAppliances.config.QPredicate;
 import com.bespalov.registryAppliances.dto.CleanerDto;
 import com.bespalov.registryAppliances.entity.Appliance;
 import com.bespalov.registryAppliances.entity.Cleaner;
 import com.bespalov.registryAppliances.repository.ApplianceRepository;
 import com.bespalov.registryAppliances.repository.CleanerRepository;
 import com.bespalov.registryAppliances.service.CleanerService;
+import com.querydsl.core.types.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.bespalov.registryAppliances.entity.QCleaner.cleaner;
 
 @Service
 public class CleanerServiceImpl implements CleanerService {
@@ -46,42 +48,21 @@ public class CleanerServiceImpl implements CleanerService {
 
     @Transactional
     @Override
-    public List<CleanerDto> filterCleaner(String name, String serialNumber, String color, String size,
-                                          BigDecimal minPrice, BigDecimal maxPrice, Integer dustCollectorCapacity,
-                                          Integer countOfModes, Boolean availability) {
-        List<Cleaner> allCleaners = cleanerRepository.findAll();
-        List<CleanerDto> cleanerDtoList = new ArrayList<>();
-        allCleaners.forEach((cleaner) -> cleanerDtoList.add(convertToCleanerDto(cleaner)));
-        return cleanerDtoList
-                .stream()
-                .filter(cleanerDto -> name == null || cleanerDto
-                        .getName()
-                        .equalsIgnoreCase(name))
-                .filter(cleanerDto -> serialNumber == null || cleanerDto
-                        .getSerialNumber()
-                        .equalsIgnoreCase(serialNumber))
-                .filter(cleanerDto -> color == null || cleanerDto
-                        .getColor()
-                        .equalsIgnoreCase(color))
-                .filter(cleanerDto -> size == null || cleanerDto
-                        .getSize()
-                        .equalsIgnoreCase(size))
-                .filter(cleanerDto -> minPrice == null || cleanerDto
-                        .getPrice()
-                        .compareTo(minPrice) >= 0)
-                .filter(cleanerDto -> maxPrice == null || cleanerDto
-                        .getPrice()
-                        .compareTo(maxPrice) <= 0)
-                .filter(cleanerDto -> dustCollectorCapacity == null || cleanerDto
-                        .getDustCollectorCapacity()
-                        .equals(dustCollectorCapacity))
-                .filter(cleanerDto -> countOfModes == null || cleanerDto
-                        .getCountOfModes()
-                        .equals(countOfModes))
-                .filter(cleanerDto -> availability == null || cleanerDto
-                        .getIsAvailability()
-                        .equals(availability))
-                .collect(Collectors.toList());
+    public List<CleanerDto> filterCleaner(CleanerDto cleanerDto) {
+        Predicate predicate = QPredicate.builder()
+                .add(cleanerDto.getName(), cleaner.name::containsIgnoreCase)
+                .add(cleanerDto.getSerialNumber(), cleaner.serialNumber::containsIgnoreCase)
+                .add(cleanerDto.getColor(), cleaner.color::containsIgnoreCase)
+                .add(cleanerDto.getSize(), cleaner.size::containsIgnoreCase)
+                .add(cleanerDto.getSize(), cleaner.size::containsIgnoreCase)
+                .add(cleanerDto.getIsAvailability(), cleaner.isAvailability::eq)
+                .add(cleanerDto.getDustCollectorCapacity(), cleaner.dustCollectorCapacity::eq)
+                .add(cleanerDto.getCountOfModes(), cleaner.countOfModes::eq)
+                .buildOr();
+        Iterable<Cleaner> cleaners = cleanerRepository.findAll(predicate);
+        List<CleanerDto> result = new ArrayList<>();
+        cleaners.iterator().forEachRemaining((cleaner) -> result.add(convertToCleanerDto(cleaner)));
+        return result;
     }
 
     public Cleaner convertToCleaner(CleanerDto cleanerDto) {

@@ -1,18 +1,21 @@
 package com.bespalov.registryAppliances.service.impl;
 
+import com.bespalov.registryAppliances.config.QPredicate;
+import com.bespalov.registryAppliances.dto.ApplianceType;
 import com.bespalov.registryAppliances.dto.ModelApplianceDto;
 import com.bespalov.registryAppliances.entity.ModelAppliance;
 import com.bespalov.registryAppliances.repository.ModelApplianceRepository;
 import com.bespalov.registryAppliances.service.ModelApplianceService;
+import com.querydsl.core.types.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.bespalov.registryAppliances.entity.QModelAppliance.modelAppliance;
 
 @Service
 public class ModelApplianceServiceImpl implements ModelApplianceService {
@@ -44,41 +47,21 @@ public class ModelApplianceServiceImpl implements ModelApplianceService {
 
     @Transactional
     @Override
-    public List<ModelApplianceDto> getModelAppliance(String applianceName, String modelName, String applianceType,
-                                                     String serialNumber, String color,
-                                                     String size, BigDecimal minPrice, BigDecimal maxPrice,
-                                                     Boolean availability) {
-        List<ModelAppliance> modelApplianceList = modelApplianceRepository.findAll();
-        return modelApplianceList.stream()
-                .filter(model -> applianceName == null || model.getAppliance()
-                        .getName()
-                        .equalsIgnoreCase(applianceName))
-                .filter(model-> modelName == null || model
-                        .getName()
-                        .equalsIgnoreCase(modelName))
-                .filter(model -> applianceType == null || model
-                        .getApplianceType().toString()
-                        .equalsIgnoreCase(applianceType))
-                .filter(model -> serialNumber == null || model
-                        .getSerialNumber()
-                        .equalsIgnoreCase(serialNumber))
-                .filter(model -> color == null || model
-                        .getColor()
-                        .equalsIgnoreCase(color))
-                .filter(model -> size == null || model
-                        .getSize()
-                        .equalsIgnoreCase(size))
-                .filter(model -> minPrice == null || (model
-                        .getPrice())
-                        .compareTo(minPrice) >= 0)
-                .filter(model -> maxPrice == null || (model
-                        .getPrice())
-                        .compareTo(maxPrice) <= 0)
-                .filter(model -> availability == null || model
-                        .getIsAvailability()
-                        .equals(availability))
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+    public List<ModelApplianceDto> filterModelAppliance(ModelApplianceDto modelApplianceDto) {
+        Predicate predicate = QPredicate.builder()
+                .add(ApplianceType.valueOf(modelApplianceDto.getApplianceType()),
+                        modelAppliance.applianceType::eq)
+                .add(modelApplianceDto.getName(), modelAppliance.name::containsIgnoreCase)
+                .add(modelApplianceDto.getSerialNumber(), modelAppliance.serialNumber::containsIgnoreCase)
+                .add(modelApplianceDto.getColor(), modelAppliance.color::containsIgnoreCase)
+                .add(modelApplianceDto.getSize(), modelAppliance.size::containsIgnoreCase)
+                .add(modelApplianceDto.getPrice(), modelAppliance.price::goe)
+                .add(modelApplianceDto.getIsAvailability(), modelAppliance.isAvailability::eq)
+                .buildOr();
+        Iterable<ModelAppliance> modelApplianceIterable = modelApplianceRepository.findAll(predicate);
+        List<ModelApplianceDto> result = new ArrayList<>();
+        modelApplianceIterable.iterator().forEachRemaining((modelAppliance) -> result.add(convertToDto(modelAppliance)));
+        return result;
     }
 
     public ModelApplianceDto convertToDto(ModelAppliance modelAppliance) {

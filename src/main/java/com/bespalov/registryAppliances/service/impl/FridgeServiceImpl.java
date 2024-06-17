@@ -1,19 +1,21 @@
 package com.bespalov.registryAppliances.service.impl;
 
+import com.bespalov.registryAppliances.config.QPredicate;
 import com.bespalov.registryAppliances.dto.FridgeDto;
 import com.bespalov.registryAppliances.entity.Appliance;
 import com.bespalov.registryAppliances.entity.Fridge;
 import com.bespalov.registryAppliances.repository.ApplianceRepository;
 import com.bespalov.registryAppliances.repository.FridgeRepository;
 import com.bespalov.registryAppliances.service.FridgeService;
+import com.querydsl.core.types.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.bespalov.registryAppliances.entity.QFridge.fridge;
 
 @Service
 public class FridgeServiceImpl implements FridgeService {
@@ -45,42 +47,21 @@ public class FridgeServiceImpl implements FridgeService {
 
     @Transactional
     @Override
-    public List<FridgeDto> filterFridge(String name, String serialNumber, String color, String size,
-                                        BigDecimal minPrice, BigDecimal maxPrice, Integer countOfDoors,
-                                        String typeOfCompressor, Boolean availability) {
-        List<Fridge> allFridges = fridgeRepository.findAll();
-        List<FridgeDto> fridgeDtoList = new ArrayList<>();
-        allFridges.forEach((fridge) -> fridgeDtoList.add(convertToFridgeDto(fridge)));
-        return fridgeDtoList
-                .stream()
-                .filter(fridgeDto -> name == null || fridgeDto
-                        .getName()
-                        .equalsIgnoreCase(name))
-                .filter(fridgeDto -> serialNumber == null || fridgeDto
-                        .getSerialNumber()
-                        .equalsIgnoreCase(serialNumber))
-                .filter(fridgeDto -> color == null || fridgeDto
-                        .getColor()
-                        .equalsIgnoreCase(color))
-                .filter(fridgeDto -> size == null || fridgeDto
-                        .getSize()
-                        .equalsIgnoreCase(size))
-                .filter(fridgeDto -> minPrice == null || fridgeDto
-                        .getPrice()
-                        .compareTo(minPrice) >= 0)
-                .filter(fridgeDto -> maxPrice == null || fridgeDto
-                        .getPrice()
-                        .compareTo(maxPrice) <= 0)
-                .filter(fridgeDto -> countOfDoors == null || fridgeDto
-                        .getCountOfDoors()
-                        .equals(countOfDoors))
-                .filter(fridgeDto -> typeOfCompressor == null || fridgeDto
-                        .getTypeOfCompressor()
-                        .equalsIgnoreCase(typeOfCompressor))
-                .filter(cleanerDto -> availability == null || cleanerDto
-                        .getIsAvailability()
-                        .equals(availability))
-                .collect(Collectors.toList());
+    public List<FridgeDto> filterFridge(FridgeDto fridgeDto) {
+        Predicate predicate = QPredicate.builder()
+                .add(fridgeDto.getName(), fridge.name::containsIgnoreCase)
+                .add(fridgeDto.getSerialNumber(), fridge.serialNumber::containsIgnoreCase)
+                .add(fridgeDto.getColor(), fridge.color::containsIgnoreCase)
+                .add(fridgeDto.getSize(), fridge.size::containsIgnoreCase)
+                .add(fridgeDto.getPrice(), fridge.price::goe)
+                .add(fridgeDto.getIsAvailability(), fridge.isAvailability::eq)
+                .add(fridgeDto.getCountOfDoors(), fridge.countOfDoors::eq)
+                .add(fridgeDto.getTypeOfCompressor(), fridge.typeOfCompressor::containsIgnoreCase)
+                .buildOr();
+        Iterable<Fridge> fridges = fridgeRepository.findAll(predicate);
+        List<FridgeDto> result = new ArrayList<>();
+        fridges.iterator().forEachRemaining((fridge) -> result.add(convertToFridgeDto(fridge)));
+        return result;
     }
 
     public Fridge convertToFridge(FridgeDto fridgeDto) {

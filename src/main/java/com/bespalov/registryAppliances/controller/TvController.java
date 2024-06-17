@@ -3,7 +3,6 @@ package com.bespalov.registryAppliances.controller;
 import com.bespalov.registryAppliances.dto.TvDto;
 import com.bespalov.registryAppliances.service.TvService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -40,28 +38,9 @@ public class TvController {
 
     @Operation(summary = "Method getting and filtering tv", tags = {"tv"})
     @GetMapping("/tv")
-    public ResponseEntity<List<TvDto>> getAllAndFilterTv(
-            @Parameter(description = "The model name for filter")
-            @RequestParam(required = false) String name,
-            @Parameter(description = "The model serial number for filter")
-            @RequestParam(required = false) String serialNumber,
-            @Parameter(description = "The model color for filter")
-            @RequestParam(required = false) String color,
-            @Parameter(description = "The model size for filter")
-            @RequestParam(required = false) String size,
-            @Parameter(description = "The model min price  for filter")
-            @RequestParam(required = false) BigDecimal minPrice,
-            @Parameter(description = "The model max price for filter")
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @Parameter(description = "The model category for filter")
-            @RequestParam(required = false) String category,
-            @Parameter(description = "The model technology for filter")
-            @RequestParam(required = false) String technology,
-            @Parameter(description = "The model availability for filter")
-            @RequestParam(required = false) Boolean availability) {
+    public ResponseEntity<List<TvDto>> getAllAndFilterTv(@RequestBody TvDto tvDto) {
         return new ResponseEntity<>(
-                tvService.filterTv(name, serialNumber, color, size, minPrice, maxPrice, category,
-                        technology, availability), HttpStatus.OK);
+                tvService.filterTv(tvDto), HttpStatus.OK);
 
     }
 }

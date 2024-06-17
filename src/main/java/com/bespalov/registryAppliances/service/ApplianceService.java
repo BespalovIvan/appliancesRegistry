@@ -9,3 +9,4 @@ public interface ApplianceService {
 
     List<ApplianceDto> findAllAppliancesWithSortByAlphabet(String direction);
 }
+
