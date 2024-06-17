@@ -11,7 +11,6 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 public class Tv extends ModelAppliance {
 
     @Column(name = "category")

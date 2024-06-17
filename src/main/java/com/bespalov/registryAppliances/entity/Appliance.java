@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Entity
 @Data
-@NoArgsConstructor
 @Table(name = "appliances")
 public class Appliance {
     @Id

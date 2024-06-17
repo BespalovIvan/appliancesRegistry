@@ -11,7 +11,6 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 public class Cleaner extends ModelAppliance {
     @Column(name = "dust_collector_capacity")
     private Integer dustCollectorCapacity;

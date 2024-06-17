@@ -12,7 +12,6 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 public class Fridge extends ModelAppliance {
 
     @Column(name = "count_of_doors")

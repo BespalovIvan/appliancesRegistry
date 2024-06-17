@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Entity
 @Data
-@NoArgsConstructor
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "models")
 public class ModelAppliance {

@@ -5,14 +5,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import java.util.Objects;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 public class Pc extends ModelAppliance {
 
     @Column(name = "category")
